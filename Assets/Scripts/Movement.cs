@@ -14,10 +14,14 @@ public class Movement : MonoBehaviour
     private float mainThrustSpeed = 1000;
     private float rotationSpeed = 100;
 
+    // Class Variables
+    private AudioSource audioSource;
+
     // Start is called before the first frame update
     void Start()
     {
         playerRb = GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -49,10 +53,20 @@ public class Movement : MonoBehaviour
         {
             // Holding "Jump"
             playerRb.AddRelativeForce(Vector3.up * mainThrustSpeed * Time.deltaTime, ForceMode.Acceleration);
+            
+            if (!audioSource.isPlaying)
+            {
+                audioSource.Play();
+            }
         }
         else if (ksSpace == thrustKeyState.Up)
         {
             ksSpace = thrustKeyState.Off;
+
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
         }
     }
 
