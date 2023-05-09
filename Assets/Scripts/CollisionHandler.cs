@@ -1,30 +1,104 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class CollisionHandler : MonoBehaviour
 {
     // Variables
-    int currentSceneIndex;
+    private int currentSceneIndex;
+    private float levelLoadDelay = 2f;
+
+    // Class variables
+    private AudioSource audioSource;
+    [SerializeField] private AudioClip successSound;
+    [SerializeField] private AudioClip crashSound;
+
+    [SerializeField] private ParticleSystem successParticles;
+    [SerializeField] private ParticleSystem crashParticles;
+
+    // State variables
+    bool isTransitioning = false;
+    bool collisionDisabled = false;
+
+    void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+
+    void Update()
+    {
+        RespondToDebugKeys();
+    }
+
+    void RespondToDebugKeys()
+    {
+        // Load next level.
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LoadNextLevel();
+        }
+
+        // Disable all collision.
+        else if (Input.GetKeyDown(KeyCode.C))
+        {
+            collisionDisabled = !collisionDisabled; // Toggle collision.
+        }
+    }
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (isTransitioning || collisionDisabled) { return; }
+
+
         switch (collision.gameObject.tag)
         {
             case "Friendly":
                 Debug.Log("Collided with Launch Pad");
                 break;
             case "Finish":
-                LoadNextLevel();
+                StartNextLevelSequence();
                 Debug.Log("Collided with Landing Pad");
                 break;
             case "Fuel":
                 Debug.Log("Collided with Fuel Cell");
                 break;
             default:
-                ReloadLevel();
+                StartCrashSequence();
                 Debug.Log("Sorry, you blew up!");
                 break;
         }
+    }
+
+    private void StartNextLevelSequence()
+    {
+        // Stop rocket boost SFX on touchdown.
+        isTransitioning = true;
+        audioSource.Stop();
+
+        // Play SFX upon touchdown.
+        audioSource.PlayOneShot(successSound);
+        // Play particle effect upon touchdown.
+        successParticles.Play();
+
+        // Stop player control for a second after landing.
+        GetComponent<Movement>().enabled = false;
+        Invoke("LoadNextLevel", levelLoadDelay);
+    }
+
+    private void StartCrashSequence()
+    {
+        // Stop rocket boost SFX on crash.
+        isTransitioning = true;
+        audioSource.Stop();
+
+        // Play SFX upon crash.
+        audioSource.PlayOneShot(crashSound);
+        // Play particle effect upon crash.
+        crashParticles.Play();
+
+        // Stop player control for a second after crashing.
+        GetComponent<Movement>().enabled = false;
+        Invoke("ReloadLevel", levelLoadDelay);
     }
 
     private void ReloadLevel()

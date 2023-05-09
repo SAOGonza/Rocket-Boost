@@ -7,8 +7,6 @@ public class Movement : MonoBehaviour
     // Variables
     private enum thrustKeyState { Off, Down, Up };
     private thrustKeyState ksSpace = thrustKeyState.Off;
-    // private enum rotationKeyState { Off, Left, Right, Up };
-    // private rotationKeyState ksADKeys = rotationKeyState.Off;
 
     private Rigidbody playerRb;
     private float mainThrustSpeed = 1000;
@@ -16,6 +14,10 @@ public class Movement : MonoBehaviour
 
     // Class Variables
     private AudioSource audioSource;
+    [SerializeField] private AudioClip mainEngine;
+    [SerializeField] private ParticleSystem mainEngineParticles;
+    [SerializeField] private ParticleSystem leftThrusterParticles;
+    [SerializeField] private ParticleSystem rightThrusterParticles;
 
     // Start is called before the first frame update
     void Start()
@@ -45,6 +47,22 @@ public class Movement : MonoBehaviour
         }
     }
 
+    void ProcessRotation()
+    {
+        if (Input.GetKey(KeyCode.A))
+        {
+            RotateLeft();
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            RotateRight();
+        }
+        else
+        {
+            StopRotating();
+        }
+    }
+
     private void FixedUpdate()
     {
         // These if statements are carried over from ProcessThrust()
@@ -52,34 +70,66 @@ public class Movement : MonoBehaviour
         if (ksSpace == thrustKeyState.Down)
         {
             // Holding "Jump"
-            playerRb.AddRelativeForce(Vector3.up * mainThrustSpeed * Time.deltaTime, ForceMode.Acceleration);
-            
-            if (!audioSource.isPlaying)
-            {
-                audioSource.Play();
-            }
+            StartThrusting();
         }
         else if (ksSpace == thrustKeyState.Up)
         {
-            ksSpace = thrustKeyState.Off;
-
-            if (audioSource.isPlaying)
-            {
-                audioSource.Stop();
-            }
+            // No longer holding "Jump".
+            StopThrusting();
         }
     }
 
-    void ProcessRotation()
+    void StartThrusting()
     {
-        if (Input.GetKey(KeyCode.A))
+        // Holding "Jump".
+        playerRb.AddRelativeForce(Vector3.up * mainThrustSpeed * Time.deltaTime, ForceMode.Acceleration);
+
+        if (!audioSource.isPlaying)
         {
-            ApplyRotation(rotationSpeed);
+            audioSource.PlayOneShot(mainEngine);
         }
-        else if (Input.GetKey(KeyCode.D))
+        if (!mainEngineParticles.isPlaying)
         {
-            ApplyRotation(-rotationSpeed);
+            mainEngineParticles.Play();
         }
+    }
+
+    private void StopThrusting()
+    {
+        // No longer holding "Jump".
+        ksSpace = thrustKeyState.Off;
+
+        if (audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+        mainEngineParticles.Stop();
+    }
+
+    private void RotateLeft()
+    {
+        ApplyRotation(rotationSpeed);
+
+        if (!rightThrusterParticles.isPlaying)
+        {
+            rightThrusterParticles.Play();
+        }
+    }
+
+    private void RotateRight()
+    {
+        ApplyRotation(-rotationSpeed);
+
+        if (!leftThrusterParticles.isPlaying)
+        {
+            leftThrusterParticles.Play();
+        }
+    }
+
+    private void StopRotating()
+    {
+        rightThrusterParticles.Stop();
+        leftThrusterParticles.Stop();
     }
 
     void ApplyRotation(float rotationSpeedThisFrame)
@@ -89,5 +139,13 @@ public class Movement : MonoBehaviour
         //playerRb.freezeRotation = false; // Unfreeze rotation so the physics system can take over.
         playerRb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY |
             RigidbodyConstraints.FreezePositionZ;
+    }
+
+
+    private void OnDisable()
+    {
+        mainEngineParticles.Stop();
+        rightThrusterParticles.Stop();
+        leftThrusterParticles.Stop();
     }
 }
