@@ -9,8 +9,8 @@ public class Movement : MonoBehaviour
     private thrustKeyState ksSpace = thrustKeyState.Off;
 
     private Rigidbody playerRb;
-    private float mainThrustSpeed = 1000;
-    private float rotationSpeed = 100;
+    private float mainThrustSpeed = 500;
+    private float rotationSpeed = 200;
 
     // Class Variables
     private AudioSource audioSource;
@@ -82,7 +82,7 @@ public class Movement : MonoBehaviour
     void StartThrusting()
     {
         // Holding "Jump".
-        playerRb.AddRelativeForce(Vector3.up * mainThrustSpeed * Time.deltaTime, ForceMode.Acceleration);
+        playerRb.AddRelativeForce(Vector3.up * mainThrustSpeed * Time.deltaTime);// , ForceMode.Acceleration);
 
         if (!audioSource.isPlaying)
         {
