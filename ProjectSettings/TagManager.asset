@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Friendly
   - Fuel
+  - Pressure Plate
   layers:
   - Default
   - TransparentFX

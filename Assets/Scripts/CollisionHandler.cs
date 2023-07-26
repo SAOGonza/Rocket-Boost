@@ -7,11 +7,13 @@ public class CollisionHandler : MonoBehaviour
     // Variables
     private int currentSceneIndex;
     private float levelLoadDelay = 2f;
+    [HideInInspector] public bool doorIsOpen;
 
     // Class variables
     private AudioSource audioSource;
     [SerializeField] private AudioClip successSound;
     [SerializeField] private AudioClip crashSound;
+    [SerializeField] private AudioClip openDoorSound;
 
     [SerializeField] private ParticleSystem successParticles;
     [SerializeField] private ParticleSystem crashParticles;
@@ -62,6 +64,10 @@ public class CollisionHandler : MonoBehaviour
             case "Fuel":
                 Debug.Log("Collided with Fuel Cell");
                 break;
+            case "Pressure Plate":
+                OpenDoor();
+                Debug.Log("Collided with Pressure Plate.");
+                break;
             default:
                 StartCrashSequence();
                 Debug.Log("Sorry, you blew up!");
@@ -99,6 +105,13 @@ public class CollisionHandler : MonoBehaviour
         // Stop player control for a second after crashing.
         GetComponent<Movement>().enabled = false;
         Invoke("ReloadLevel", levelLoadDelay);
+    }
+
+    private void OpenDoor()
+    {
+        Debug.Log("Open Sesame!");
+        doorIsOpen = true;
+        audioSource.PlayOneShot(openDoorSound);
     }
 
     private void ReloadLevel()
